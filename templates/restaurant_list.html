@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Zomato - Restaurant Search</title>
+  <style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+      }
+
+      h1,h2,p{
+        color: rgb(211, 32, 0);
+      }
+      
+      /* ------------------------------
+         HERO / HEADER
+      ------------------------------ */
+      .hero {
+        position: relative;
+        height: 500px;
+        background: url("https://images.deliveryhero.io/image/fd-hk/LH/w6ct-hero.jpg") center center / cover no-repeat;
+      }      
+      
+      .hero-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5); /* Dark overlay */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .site-title {
+        font-size: 50px;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .site-subtitle {
+        margin: 5px 0 20px 0;
+        font-size: 18px;
+      }
+      
+      /* Layout for search forms */
+      .search-form {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px 15px;
+        margin: 10px;
+        border-radius: 5px;
+      }
+      
+      /* Inline form fields */
+      .search-form div {
+        margin-bottom: 0px;
+      }
+      
+      .search-form label {
+        display: inline-block;
+        width: 80px;
+        text-align: left;
+        color: #fff;
+      }
+      
+      /* Buttons in the hero */
+      .hero-overlay button {
+        padding: 6px 12px;
+        margin: 10px;
+        background: rgb(211, 32, 0);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      .hero-overlay button:hover {
+        background:rgb(211, 32, 0);
+      }
+      
+      /* ------------------------------
+         MAIN CONTENT
+      ------------------------------ */
+      main {
+        padding: 20px;
+      }
+      
+      /* Grid container for 3 columns */
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 80px;
+      }
+      
+      /* Each restaurant item */
+      .restaurant-item {
+        background: black;
+        border-radius: 15px;
+        padding: 10px;
+        text-align: center;
+      }
+      
+      .restaurant-photo {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+      
+      .restaurant-name {
+        margin-top: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color:rgb(211, 32, 0); 
+      }
+      
+      /* Pagination controls */
+      #pagination-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      
+      #page-info {
+        font-weight: bold;
+      }
+      
+      #pagination-controls button {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background: rgb(211, 32, 0);
+        color: #fff;
+        cursor: pointer;
+      }
+      
+      #pagination-controls button:hover {
+        background: rgba(211, 32, 0, 0.8);
+      }
+
+      .search-form {
+        margin: 20px auto;
+        text-align: center;
+      }
+      
+      /* Layout the input group as a flex row */
+      .input-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap; /* Allows wrapping on smaller screens */
+      }
+      
+      /* Style the text inputs */
+      .input-group input[type="text"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 200px;
+      }
+      
+      /* Style the submit button */
+      .input-group button {
+        padding: 8px 16px;
+        background-color: rgb(211, 32, 0);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      
+      .input-group button:hover {
+        background-color: rgba(211, 32, 0, 0.8);
+      }
+    </style>
+  <script>
+    let currentPage = 1;
+    const limit = 9; // 9 restaurants per page (3 rows x 3 columns)
+    let totalCount = 0;
+    let defaultMode = true;
+
+    // Fetch and display the default paginated list
+    async function fetchRestaurants(page = 1) {
+      const response = await fetch(`/api/restaurants?page=${page}&limit=${limit}`);
+      const data = await response.json();
+      totalCount = data.total_count;
+      renderRestaurants(data.restaurants);
+      document.getElementById('pagination-controls').style.display = 'flex';
+      document.getElementById('page-info').textContent =
+        `Page ${currentPage} of ${Math.ceil(totalCount / limit)}`;
+      defaultMode = true;
+    }
+
+    // Render restaurant results in the grid
+    function renderRestaurants(restaurants) {
+      const gridDiv = document.getElementById('restaurant-grid');
+      gridDiv.innerHTML = '';
+      restaurants.forEach(doc => {
+        // Check if restaurant details are nested or top-level
+        const resData = doc.restaurant ? doc.restaurant : doc;
+        const name = resData.name || "Unnamed Restaurant";
+        const imageUrl = resData.featured_image || '';
+        const cuisines = resData.cuisines || '';
+        const city = (resData.location && resData.location.city) ? resData.location.city : '';
+        const address = (resData.location && resData.location.address) ? resData.location.address : '';
+
+        const container = document.createElement('div');
+        container.className = 'restaurant-item';
+        let imageHtml = imageUrl ? `<img src="${imageUrl}" alt="${name}" class="restaurant-photo">` : '';
+        container.innerHTML = `
+          ${imageHtml}
+          <div class="restaurant-details">
+            <h3 class="restaurant-name"><a href="/restaurant/${doc._id}">${name}</a></h3>
+            <p class="restaurant-cuisines">${cuisines}</p>
+            <p class="restaurant-city">${city}</p>
+            <p class="restaurant-address">${address}</p>
+          </div>
+        `;
+        gridDiv.appendChild(container);
+      });
+    }
+
+    // Location search: using latitude, longitude, and distance
+    async function searchByLocation(event) {
+        event.preventDefault();
+        const query = document.getElementById('lat').value;
+        const city = document.getElementById('lon').value;
+        
+        // Call the search endpoint with the provided query and city values
+        const response = await fetch(`/api/restaurants/search?lat=${encodeURIComponent(query)}&lon=${encodeURIComponent(city)}`);
+        const restaurants = await response.json();
+        
+        // Render the results in your grid
+        renderRestaurants(restaurants);
+        
+        // Optionally hide pagination and update result count display
+        document.getElementById('pagination-controls').style.display = 'none';
+        document.getElementById('page-info').textContent = `Found ${restaurants.length} results`;
+      }      
+
+    // Image search: submit the image file
+    function renderRestaurants(restaurants) {
+        const gridDiv = document.getElementById('restaurant-grid');
+        gridDiv.innerHTML = '';
+        
+        if (!restaurants.length) {
+          gridDiv.innerHTML = `<p>No matching restaurants found.</p>`;
+          return;
+        }
+        
+        restaurants.forEach(doc => {
+          // Handle nested restaurant data
+          const resData = doc.restaurant ? doc.restaurant : doc;
+          const name = resData.name || "Unnamed Restaurant";
+          // Use a fallback default image if featured_image is not available
+          const imageUrl = resData.featured_image ? resData.featured_image 
+                          : 'https://via.placeholder.com/300x200?text=No+Image';
+          const cuisines = resData.cuisines || '';
+          const city = (resData.location && resData.location.city) ? resData.location.city : '';
+          const address = (resData.location && resData.location.address) ? resData.location.address : '';
+          
+          const container = document.createElement('div');
+          container.className = 'restaurant-item';
+          let imageHtml = `<img src="${imageUrl}" alt="${name}" class="restaurant-photo">`;
+          container.innerHTML = `
+            ${imageHtml}
+            <div class="restaurant-details">
+              <h3 class="restaurant-name"><a href="/restaurant/${doc._id}">${name}</a></h3>
+              <p class="restaurant-cuisines">${cuisines}</p>
+              <p class="restaurant-city">${city}</p>
+              <p class="restaurant-address">${address}</p>
+            </div>
+          `;
+          gridDiv.appendChild(container);
+        });
+      }
+      
+      async function searchByImage(event) {
+        event.preventDefault();
+        const formData = new FormData(document.getElementById('imageForm'));
+        
+        try {
+          const response = await fetch('/api/restaurants/image_search', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            console.error("Image search failed:", response.statusText);
+            alert("Image search failed. Please try again.");
+            return;
+          }
+          
+          const restaurants = await response.json();
+          
+          console.log("Image search results:", restaurants);
+          renderRestaurants(restaurants);
+          
+          // Hide pagination controls (if not needed)
+          document.getElementById('pagination-controls').style.display = 'none';
+          document.getElementById('page-info').textContent = `Found ${restaurants.length} results`;
+        } catch (error) {
+          console.error("Error during image search:", error);
+          alert("An error occurred during image search.");
+        }
+      }      
+      
+    // Reset to default listing
+    function showAllRestaurants() {
+      currentPage = 1;
+      fetchRestaurants(currentPage);
+    }
+
+    function nextPage() {
+      const maxPage = Math.ceil(totalCount / limit);
+      if (currentPage < maxPage) {
+        currentPage++;
+        fetchRestaurants(currentPage);
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchRestaurants(currentPage);
+      }
+    }
+
+    window.onload = function() {
+      fetchRestaurants(currentPage);
+    }
+  </script>
+</head>
+<body>
+  <!-- Hero Header with Search Forms -->
+  <header class="hero">
+    <div class="hero-overlay">
+      <h1 class="site-title">zomato</h1>
+      <p class="site-subtitle">Savor the Finest Dining Experiences</p>
+      
+      <!-- Location Search Form (inputs and button side by side) -->
+      <form onsubmit="searchByLocation(event)" class="search-form">
+        <h2>Search by Location</h2>
+        <div class="input-group">
+          <input type="text" id="lat" placeholder="Enter restaurant/cuisine">
+          <input type="text" id="lon" placeholder="Search by city">
+          <button type="submit">Search</button>
+        </div>
+      </form>      
+      
+      <!-- Image Search Form (inputs and button side by side) -->
+      <form id="imageForm" onsubmit="searchByImage(event)" class="search-form image-search">
+        <h2>Search by Image</h2>
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">Search by Image</button>
+      </form>
+      
+      <!-- Reset Button to show default paginated list -->
+      <button onclick="showAllRestaurants()">Show All Restaurants</button>
+    </div>
+  </header>
+  
+  <!-- Main Content: Restaurant Grid and Pagination -->
+  <main>
+    <div id="restaurant-grid" class="grid-container"></div>
+    <div id="pagination-controls">
+      <button onclick="prevPage()">Previous</button>
+      <span id="page-info"></span>
+      <button onclick="nextPage()">Next</button>
+    </div>
+  </main>
+</body>
+</html>

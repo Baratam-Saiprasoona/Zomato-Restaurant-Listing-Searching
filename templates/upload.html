@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Image for Cuisine Detection</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding-top: 50px; }
+    form { display: inline-block; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input[type="file"] { margin-bottom: 15px; }
+    button { padding: 10px 20px; background: #e67e22; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #d35400; }
+  </style>
+</head>
+<body>
+  <h1>Upload an Image</h1>
+  <form method="POST" action="/upload" enctype="multipart/form-data">
+    <input type="file" name="file" required>
+    <br>
+    <button type="submit">Upload and Detect Cuisine</button>
+  </form>
+  {% if detected_cuisine %}
+    <p>Last detected cuisine: <strong>{{ detected_cuisine }}</strong></p>
+  {% endif %}
+</body>
+</html>

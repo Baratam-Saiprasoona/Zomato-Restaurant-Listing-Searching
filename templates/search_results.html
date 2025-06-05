@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Search Results for Detected Cuisine</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding-top: 50px; }
+    .results { background: #fff; padding: 20px; display: inline-block; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    a { color: #3498db; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Search Results</h1>
+  {% if cuisine %}
+    <div class="results">
+      <p>Detected cuisine: <strong>{{ cuisine }}</strong></p>
+      <!-- Here, you would loop through and display restaurant details matching the cuisine. -->
+      <p>Restaurant search results go here...</p>
+    </div>
+  {% else %}
+    <p>No cuisine detected. Please <a href="/upload">upload an image</a> first.</p>
+  {% endif %}
+  <br>
+  <a href="/upload">Go back to upload page</a>
+</body>
+</html>

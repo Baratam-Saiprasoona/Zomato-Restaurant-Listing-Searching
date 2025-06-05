@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurant Detail</title>
+  <style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+      }
+      
+      /* Header */
+      header {
+        background: black;
+        color: rgba(230, 70, 34, 0.93);
+        padding: 15px 20px;
+        text-align: center;
+      }
+
+      .back-button {
+        position: absolute;
+        left: 20px;
+        top: 15px;
+        padding: 6px 12px;
+        background: rgba(230, 70, 34, 0.93);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .back-button:hover {
+        background: #555;
+      }
+      
+      /* Detail Box */
+      .detail-box {
+        background: black;
+        color: rgba(230, 70, 34, 0.93);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      
+      /* Restaurant Image in Detail Box */
+      .detail-photo {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+      
+      /* Restaurant Details Text */
+      .detail-box h2 {
+        margin-top: 0;
+        font-size: 28px;
+      }
+      
+      .detail-box p {
+        font-size: 16px;
+        margin: 10px 0;
+      }
+      
+      .detail-box a {
+        color:rgba(230, 70, 34, 0.93);
+        text-decoration: none;
+      }
+      
+      .detail-box a:hover {
+        text-decoration: underline;
+      }
+    </style>      
+  <script>
+    async function fetchRestaurant() {
+      const restaurantId = "{{ restaurant_id }}";
+      const response = await fetch(`/api/restaurant/${restaurantId}`);
+      const data = await response.json();
+
+      const detailBox = document.getElementById('detail-box');
+      
+      // Check if an error occurred
+      if (data.error) {
+        detailBox.innerHTML = `<p>${data.error}</p>`;
+        return;
+      }
+
+      // Access the nested "restaurant" object
+      const res = data.restaurant;
+      const name = res.name || "Unnamed Restaurant";
+      const url = res.url || "#";
+      const cuisines = res.cuisines || "N/A";
+      const address = (res.location && res.location.address) ? res.location.address : "N/A";
+      const city = (res.location && res.location.city) ? res.location.city : "N/A";
+      const featuredImage = res.featured_image || "";
+      const rating = res.user_rating ? res.user_rating.aggregate_rating : "N/A";
+      
+      let imageHtml = featuredImage ? `<img src="${featuredImage}" alt="${name}" class="detail-photo">` : '';
+      
+      detailBox.innerHTML = `
+        <h2>${name}</h2>
+        ${imageHtml}
+        <p><strong>Cuisines:</strong> ${cuisines}</p>
+        <p><strong>Address:</strong> ${address}, ${city}</p>
+        <p><strong>User Rating:</strong> ${rating}</p>
+        <p><strong>Website:</strong> <a href="${url}" target="_blank">${url}</a></p>
+      `;
+    }
+    window.onload = fetchRestaurant;
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Restaurant Detail</h1>
+    <button onclick="window.history.back()" class="back-button">Back</button>
+  </header>
+  <main>
+    <div id="detail-box" class="detail-box">
+      <!-- Restaurant details will load here -->
+    </div>
+  </main>
+</body>
+</html>
